@@ -23,7 +23,7 @@ def data_load(voc_root):
     
     print(f"train length: {len(train_dataset)}\n test length: {len(test_dataset)}")
     train_data_cutted = Subset(train_dataset, range(int(len(train_dataset)*0.6)))
-    test_data_cutted = Subset(test_dataset, range(int(len(test_dataset)*0.2)))
+    test_data_cutted = Subset(test_dataset, range(int(len(test_dataset)*0.15)))
     print("Cutted sets")
     print(len(train_data_cutted))
     print(len(test_data_cutted))
