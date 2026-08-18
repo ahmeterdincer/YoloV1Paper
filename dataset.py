@@ -57,9 +57,20 @@ def feature_extracture():
         std=[0.229, 0.224, 0.225])
     ])
 class Dataset():
-    def __init__(self):
-        def encode_target(self):
-            pass
+    def __init__(self,voc_root):
+        pass
+    def encode_target(self,voc_root,index):
+        train, test = data_load(voc_root=voc_root)
+        image, target = train[index]
+        obj = target['annotation']['object']
+        if isinstance(obj,dict):
+            obj = [obj]
+        class_name = target['annotation']['object'][0]['name']
+        xmin = target['annotation']['object'][0]['bndbox']['xmin']
+        ymin = target['annotation']['object'][0]['bndbox']['ymin']
+        xmax = target['annotation']['object'][0]['bndbox']['xmax']
+        ymax = target['annotation']['object'][0]['bndbox']['ymax']
+        return class_name, xmin,ymin, xmax,ymax
 
 if __name__ == "__main__":
     train_data, test_data = data_load(voc_root=voc_root)
