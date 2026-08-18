@@ -34,7 +34,7 @@ def data_load(voc_root):
 def feature_extracture():
     train_transforms = transforms.Compose(
         [
-            transforms.Resize(448,448),
+            transforms.Resize((448,448)),
             transforms.RandomAffine(
                 degrees=0,
                 translate=(0.2,0.2),
@@ -42,12 +42,13 @@ def feature_extracture():
             transforms.ColorJitter(
                 brightness=0.2,
                 saturation=0.2),
+            transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225]),
-            transforms.ToTensor()
+                std=[0.229, 0.224, 0.225])
+            
         ]
-    )
+    )                         # veri seti cıktısını dictten grid matrisine cevircez
     test_transforms = transforms.Compose([
     transforms.Resize((448, 448)),
     transforms.ToTensor(),
@@ -55,7 +56,11 @@ def feature_extracture():
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225])
     ])
-
+class Dataset():
+    def __init__(self):
+        def encode_target(self):
+            pass
 
 if __name__ == "__main__":
     train_data, test_data = data_load(voc_root=voc_root)
+    image, target = train_data[0]
