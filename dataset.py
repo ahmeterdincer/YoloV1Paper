@@ -3,7 +3,7 @@ from torch.utils.data import Subset
 import os
 from torch.utils.data import random_split
 from torchvision.transforms import transforms
-voc_root = "./data"
+VOC_ROOT = "./data"
 
 def data_load(voc_root):
     os.makedirs(voc_root, exist_ok=True)
@@ -29,7 +29,8 @@ def data_load(voc_root):
     print("Cutted sets")
     print(len(train_data_cutted))
     print(len(test_data_cutted))
-    return train_data_cutted, test_data_cutted
+    # return train_data_cutted, test_data_cutted
+    return train_dataset
 
 def feature_extracture():
     train_transforms = transforms.Compose(
@@ -73,5 +74,5 @@ class Dataset():
         return class_name, xmin,ymin, xmax,ymax
 
 if __name__ == "__main__":
-    train_data, test_data = data_load(voc_root=voc_root)
-    image, target = train_data[0]
+    # train_data, test_data = data_load(voc_root=VOC_ROOT)
+    # image, target = train_data[0]
