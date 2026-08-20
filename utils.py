@@ -1,4 +1,10 @@
 # [Adım 2] utils.py (Temel)   -> IoU ve Bounding Box çizim fonksiyonlarını yaz
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from PIL import Image
+
 def box_boundaries( xmin:float, ymin:float, xmax:float, ymax:float):
     x_center= (xmin+xmax)/2
     y_center = (ymin+ymax)/2
@@ -53,4 +59,97 @@ def iou(real_list: list, pred_list: list):
     # 6. Adım: IoU Hesabı (Sıfıra bölme hatasına karşı epsilon eklendi)
     iou_score = intersection_area / (union_area + 1e-6)
     
-    return iou_score
+    return iou_score
+
+def plot_boxes(image, boxes, class_names=None):
+    """
+    Görseli ve üzerindeki bounding box'ları ekrana çizer.
+    
+    Parametreler:
+    - image: PyTorch Tensor (C, H, W veya 1, C, H, W), PIL Image veya NumPy Array (H, W, C)
+    - boxes: [[class_val, (score), x, y, w, h], ...] formatında normalize [0, 1] kutu listesi
+    - class_names: İndeksleri sınıf isimlerine çevirmek için liste (Örn: VOC_CLASSES)
+    """
+    # 1. Görseli Matplotlib için NumPy (H, W, C) formatına dönüştür
+    if isinstance(image, torch.Tensor):
+        image = image.detach().cpu()
+        if image.ndim == 4:
+            image = image.squeeze(0)  # (1, C, H, W) -> (C, H, W)
+        if image.ndim == 3 and image.shape[0] in [1, 3]:
+            image = image.permute(1, 2, 0)  # (C, H, W) -> (H, W, C)
+        image = image.numpy()
+        
+        # Eğer ImageNet Normalize uygulanmışsa (değerleri [0, 1] aralığına geri çek)
+        if image.min() < 0:
+            mean = np.array([0.485, 0.456, 0.406])
+            std = np.array([0.229, 0.224, 0.225])
+            image = std * image + mean
+            image = np.clip(image, 0, 1)
+    elif isinstance(image, Image.Image):
+        image = np.array(image)
+
+    height, width = image.shape[0], image.shape[1]
+
+    # 2. Çizim figürünü oluştur
+    fig, ax = plt.subplots(1, figsize=(8, 8))
+    ax.imshow(image)
+
+    # 3. Kutuları tek tek çiz
+    for box in boxes:
+        score = None
+        label = ""
+        
+        # Farklı kutu formatlarını destekle: 6 elemanlı, 5 elemanlı veya 4 elemanlı
+        if len(box) == 6:
+            cls_val, score, x, y, w, h = box
+        elif len(box) == 5:
+            cls_val, x, y, w, h = box
+        elif len(box) == 4:
+            x, y, w, h = box
+            cls_val = None
+        else:
+            continue
+
+        # Sınıf adını ve skorunu hazırla
+        if cls_val is not None:
+            if isinstance(cls_val, (int, float, np.integer)) and class_names is not None:
+                cls_idx = int(cls_val)
+                label = class_names[cls_idx] if 0 <= cls_idx < len(class_names) else str(cls_idx)
+            else:
+                label = str(cls_val)
+
+        if score is not None:
+            label += f" {score:.2f}"
+
+        # Normalize YOLO koordinatlarını (0-1) piksel koordinatlarına dönüştür
+        box_w = w * width
+        box_h = h * height
+        upper_left_x = (x - w / 2) * width
+        upper_left_y = (y - h / 2) * height
+
+        # Dikdörtgeni çiz ve ekle
+        rect = patches.Rectangle(
+            (upper_left_x, upper_left_y),
+            box_w,
+            box_h,
+            linewidth=2,
+            edgecolor="red",
+            facecolor="none"
+        )
+        ax.add_patch(rect)
+
+        # Etiket metnini kutunun sol üstüne yazdır
+        if label:
+            ax.text(
+                upper_left_x,
+                max(0, upper_left_y - 4),
+                label,
+                color="white",
+                fontsize=9,
+                fontweight="bold",
+                bbox=dict(facecolor="red", edgecolor="red", boxstyle="round,pad=0.2", alpha=0.8)
+            )
+
+    plt.axis("off")
+    plt.tight_layout()
+    plt.show()
