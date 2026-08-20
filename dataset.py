@@ -76,3 +76,4 @@ class Dataset():
 if __name__ == "__main__":
     # train_data, test_data = data_load(voc_root=VOC_ROOT)
     # image, target = train_data[0]
+    pass
