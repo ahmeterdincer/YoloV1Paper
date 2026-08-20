@@ -1,5 +1,6 @@
 # [Adım 2] utils.py (Temel)   -> IoU ve Bounding Box çizim fonksiyonlarını yaz
 import torch
+from torchvision.transforms import ToTensor
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -71,25 +72,36 @@ def plot_boxes(image, boxes, class_names=None):
     - class_names: İndeksleri sınıf isimlerine çevirmek için liste (Örn: VOC_CLASSES)
     """
     # 1. Görseli Matplotlib için NumPy (H, W, C) formatına dönüştür
-    if isinstance(image, torch.Tensor):
-        image = image.detach().cpu()
-        if image.ndim == 4:
-            image = image.squeeze(0)  # (1, C, H, W) -> (C, H, W)
-        if image.ndim == 3 and image.shape[0] in [1, 3]:
-            image = image.permute(1, 2, 0)  # (C, H, W) -> (H, W, C)
-        image = image.numpy()
+    if type(image)!= torch.Tensor:
+        image=ToTensor()(image)
+    
+    if image.ndim==4 : image.squeeze(0)
+    
+    image = image.permute(1,2,0)
+    
+    if image.requires_grad:
+        image = image.detach()
+        print("***gradyan takibi kapatıldı***")
+    
+    if image.is_cuda or image.device.type != "cpu":
+        print(f"***device {image.device} dan CPU ya cerilmistir***")
+        image = image.cpu()
         
-        # Eğer ImageNet Normalize uygulanmışsa (değerleri [0, 1] aralığına geri çek)
-        if image.min() < 0:
-            mean = np.array([0.485, 0.456, 0.406])
-            std = np.array([0.229, 0.224, 0.225])
-            image = std * image + mean
-            image = np.clip(image, 0, 1)
-    elif isinstance(image, Image.Image):
-        image = np.array(image)
-
-    height, width = image.shape[0], image.shape[1]
-
+    image = image.numpy()
+    
+    if image.min() < 0:
+        mean = np.array([0.485, 0.456, 0.406])
+        std = np.array([0.229, 0.224, 0.225])
+    
+        # Ters formül: Orijinal = (Normalize_Görsel * std) + mean
+        image = (image * std) + mean
+        
+        # Değerlerin 0 ile 1 sınırlarının dışına taşmasını engelle
+        image = np.clip(image, 0, 1)
+    
+    height = image.shape[0]
+    width = image.shape[1]
+    
     # 2. Çizim figürünü oluştur
     fig, ax = plt.subplots(1, figsize=(8, 8))
     ax.imshow(image)
@@ -152,4 +164,4 @@ def plot_boxes(image, boxes, class_names=None):
 
     plt.axis("off")
     plt.tight_layout()
-    plt.show()
+    plt.show()
