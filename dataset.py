@@ -5,6 +5,7 @@ import os
 from torch.utils.data import random_split
 from torchvision.transforms import transforms,ToTensor
 import torchvision.transforms.functional as F
+from torch.utils.data import Dataset
 VOC_ROOT = "./data"
 
 def data_load(voc_root):
@@ -60,42 +61,76 @@ def feature_extracture():
         std=[0.229, 0.224, 0.225])
     ])
 
-def encode_target(image:torch.Tensor, target:dict, S:int, info:int = 30):
+from config import S, B, C, VOC_CLASSES
+
+def encode_target(image, target, S=S, B=B, C=C):
+
     image_width, image_height = image.size
-    if isinstance(image, torch.Tensor) !=True:
-        image = F.to_tensor(image)
     
-    coordinates = []
+    target_matrix = torch.zeros((S, S, C + B * 5))
+    
     objects = target['annotation']['object']
-    if isinstance(objects,dict):
-        objects=[objects]
-    for obj in (objects):
-        coordinates.append([obj['bndbox']['xmin'], obj['bndbox']['ymin'], obj['bndbox']['xmax'], obj['bndbox']['ymax']])
+    if isinstance(objects, dict):
+        objects = [objects]
         
-    # koordinatları normalize etcez
-    normalized_coordinates = []
-    x_center = []
-    y_center = []
-    width = []
-    heigth=[]
-    for i in range(len(coordinates)):
-        normalized_coordinates.append([float(coordinates[i][0])/image_width,float(coordinates[i][1])/image_height,float(coordinates[i][2])/image_width,float(coordinates[i][3])/image_height])
-        x_center.append((normalized_coordinates[i][0] + normalized_coordinates[i][2])/2) 
-        y_center.append((normalized_coordinates[i][1] + normalized_coordinates[i][3])/2) 
-        width.append(( normalized_coordinates[i][2] - normalized_coordinates[i][0])/2) 
-        heigth.append(( normalized_coordinates[i][3] - normalized_coordinates[i][1])/2) 
+    for obj in objects:
+        class_name = obj['name']
+        if class_name not in VOC_CLASSES:
+            continue
+            
+        class_idx = VOC_CLASSES.index(class_name)
+
+        xmin = float(obj['bndbox']['xmin']) / image_width
+        ymin = float(obj['bndbox']['ymin']) / image_height
+        xmax = float(obj['bndbox']['xmax']) / image_width
+        ymax = float(obj['bndbox']['ymax']) / image_height
         
-    target_matris = torch.zeros((S,S,info))
-    class_name = 
-    
+        # Merkez (x, y) ve Boyut (w, h) hesapla
+        x_center = (xmin + xmax) / 2.0
+        y_center = (ymin + ymax) / 2.0
+        width = xmax - xmin
+        height = ymax - ymin
         
+        # Hangi grid hücresine (satır, sütun) düştüğünü bul
+        row = int(y_center * S)
+        col = int(x_center * S)
         
+        # Sınır taşmalarını engelle (0 ile S-1 arası)
+        row = min(row, S - 1)
+        col = min(col, S - 1)
         
+        # Hücre içi göreli koordinatlar (0 ile 1 arası)
+        x_cell = x_center * S - col
+        y_cell = y_center * S - row
         
-    return normalized_coordinates
+        # Eğer o hücreye daha önce nesne atanmamışsa (1. kutunun Confidence skoru 0 ise)
+        if target_matrix[row, col, C] == 0:
+            # 1. Sınıf One-Hot kodlaması (0 - 19)
+            target_matrix[row, col, class_idx] = 1.0
+            
+            # 2. 1. Kutunun Confidence Skoru (İndeks 20)
+            target_matrix[row, col, C] = 1.0
+            
+            # 3. 1. Kutunun Konumu [x_cell, y_cell, w, h] (İndeks 21 - 24)
+            target_matrix[row, col, C + 1 : C + 5] = torch.tensor([x_cell, y_cell, width, height])
+            
+    return target_matrix
+
+class Dataset(Dataset):
+    def __init__(self,)
+
+
+
 
 if __name__ == "__main__":
-    train= data_load("./data")
+    train = data_load("./data")
     image, target = train[0]
-    cordinatlar = encode_target(image,target)
-    print(cordinatlar)
+    target_matrix = encode_target(image, target)
+    print("Target Matrix Shape:", target_matrix.shape)
+    print("Nesne içeren hücrelerin koordinatları:")
+    for r in range(S):
+        for c in range(S):
+            if target_matrix[r, c, C] == 1.0:
+                cls_idx = torch.argmax(target_matrix[r, c, :C]).item()
+                box = target_matrix[r, c, C+1:C+5].tolist()
+                print(f"-> Hücre ({r}, {c}): Sınıf='{VOC_CLASSES[cls_idx]}', Kutu={box}")
