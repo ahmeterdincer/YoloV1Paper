@@ -60,24 +60,39 @@ def feature_extracture():
         std=[0.229, 0.224, 0.225])
     ])
 
-def encode_target(image:torch.Tensor, target: torch.Tensor):
-    if isinstance(image, torch.Tensor) and isinstance(target,torch.Tensor) !=True:
-        image, target = F.to_tensor(image), F.to_tensor(target)
+def encode_target(image:torch.Tensor, target:dict, S:int, info:int = 30):
+    image_width, image_height = image.size
+    if isinstance(image, torch.Tensor) !=True:
+        image = F.to_tensor(image)
     
     coordinates = []
-    image_width = image.size[0]
-    image_height = image.size[1]
-
-    for index, obj in enumerate(target['annotation']['object']):
+    objects = target['annotation']['object']
+    if isinstance(objects,dict):
+        objects=[objects]
+    for obj in (objects):
         coordinates.append([obj['bndbox']['xmin'], obj['bndbox']['ymin'], obj['bndbox']['xmax'], obj['bndbox']['ymax']])
         
     # koordinatları normalize etcez
+    normalized_coordinates = []
+    x_center = []
+    y_center = []
+    width = []
+    heigth=[]
+    for i in range(len(coordinates)):
+        normalized_coordinates.append([float(coordinates[i][0])/image_width,float(coordinates[i][1])/image_height,float(coordinates[i][2])/image_width,float(coordinates[i][3])/image_height])
+        x_center.append((normalized_coordinates[i][0] + normalized_coordinates[i][2])/2) 
+        y_center.append((normalized_coordinates[i][1] + normalized_coordinates[i][3])/2) 
+        width.append(( normalized_coordinates[i][2] - normalized_coordinates[i][0])/2) 
+        heigth.append(( normalized_coordinates[i][3] - normalized_coordinates[i][1])/2) 
+        
+    target_matris = torch.zeros((S,S,info))
+    class_name = 
     
         
         
         
         
-    return coordinates
+    return normalized_coordinates
 
 if __name__ == "__main__":
     train= data_load("./data")
