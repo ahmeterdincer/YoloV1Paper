@@ -1,8 +1,10 @@
 from torchvision.datasets import VOCDetection
+import torch
 from torch.utils.data import Subset
 import os
 from torch.utils.data import random_split
-from torchvision.transforms import transforms
+from torchvision.transforms import transforms,ToTensor
+import torchvision.transforms.functional as F
 VOC_ROOT = "./data"
 
 def data_load(voc_root):
@@ -49,7 +51,7 @@ def feature_extracture():
                 std=[0.229, 0.224, 0.225])
             
         ]
-    )                         # veri seti cıktısını dictten grid matrisine cevircez
+    ) 
     test_transforms = transforms.Compose([
     transforms.Resize((448, 448)),
     transforms.ToTensor(),
@@ -57,23 +59,28 @@ def feature_extracture():
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225])
     ])
-class Dataset():
-    def __init__(self,voc_root):
-        pass
-    def encode_target(self,voc_root,index):
-        train, test = data_load(voc_root=voc_root)
-        image, target = train[index]
-        obj = target['annotation']['object']
-        if isinstance(obj,dict):
-            obj = [obj]
-        class_name = target['annotation']['object'][0]['name']
-        xmin = target['annotation']['object'][0]['bndbox']['xmin']
-        ymin = target['annotation']['object'][0]['bndbox']['ymin']
-        xmax = target['annotation']['object'][0]['bndbox']['xmax']
-        ymax = target['annotation']['object'][0]['bndbox']['ymax']
-        return class_name, xmin,ymin, xmax,ymax
+
+def encode_target(image:torch.Tensor, target: torch.Tensor):
+    if isinstance(image, torch.Tensor) and isinstance(target,torch.Tensor) !=True:
+        image, target = F.to_tensor(image), F.to_tensor(target)
+    
+    coordinates = []
+    image_width = image.size[0]
+    image_height = image.size[1]
+
+    for index, obj in enumerate(target['annotation']['object']):
+        coordinates.append([obj['bndbox']['xmin'], obj['bndbox']['ymin'], obj['bndbox']['xmax'], obj['bndbox']['ymax']])
+        
+    # koordinatları normalize etcez
+    
+        
+        
+        
+        
+    return coordinates
 
 if __name__ == "__main__":
-    # train_data, test_data = data_load(voc_root=VOC_ROOT)
-    # image, target = train_data[0]
-    pass
+    train= data_load("./data")
+    image, target = train[0]
+    cordinatlar = encode_target(image,target)
+    print(cordinatlar)
