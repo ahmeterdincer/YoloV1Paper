@@ -32,8 +32,7 @@ def data_load(voc_root):
     print("Cutted sets")
     print(len(train_data_cutted))
     print(len(test_data_cutted))
-    # return train_data_cutted, test_data_cutted
-    return train_dataset
+    return train_data_cutted, test_data_cutted
 
 def feature_extracture():
     train_transforms = transforms.Compose(
@@ -117,8 +116,24 @@ def encode_target(image, target, S=S, B=B, C=C):
     return target_matrix
 
 class Dataset(Dataset):
-    def __init__(self,)
+    def __init__(self,dataset: Dataset, S:int, B:int, C:int, transform=None):
+        self.transform = transform
+        self.S = S
+        self.B = B
+        self.C = C
+        self.dataset = dataset
+        
+    def __len__(self):
+        return len(self.dataset)
+    
+    def __getitem__(self,index):
+        image, target = self.dataset[index]
+        target_matrix = encode_target(image=image, target=target, S=self.S, B=self.B, C=self.C)
 
+        if self.transform:
+            image=self.transform(image)
+        
+        return image, target_matrix
 
 
 
