@@ -33,3 +33,17 @@ class YOLOLoss(nn.Module):
                             [torch.sqrt(torch.abs(true_bounding_box[2]) + 1e-6)*exists_box,torch.sqrt(torch.abs(true_bounding_box[3]) + 1e-6)*exists_box])
             
         box_loss = self.coord * (xy_loss + wh_loss)
+        if best_box == torch.tensor(0):
+            object_loss = self.mse(prediction[..., 20:21]*exists_box,target[...,20:21]*exists_box)
+        elif best_box == torch.tensor(1): 
+            object_loss = self.mse(prediction[..., 25:26]*exists_box,target[...,20:21]*exists_box)
+
+        no_object_loss_b1 = self.mse(prediction[...,20:21]*(1-exists_box), target[...,20:21]*(1-exists_box))
+        no_object_loss_b2 = self.mse(prediction[..., 25:26]*(1-exists_box),target[...,20:21]*(1-exists_box))
+        no_object_loss = self.noobj * (no_object_loss_b1 + no_object_loss_b2)   
+        class_loss = self.mse(prediction[...,:20]*exists_box, target[...,:20]*exists_box)
+            
+        total_loss = box_loss + object_loss + no_object_loss + class_loss
+        
+        return total_loss
+        
