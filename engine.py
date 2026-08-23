@@ -40,8 +40,6 @@ class TrainTestSteps(nn.Module):
 
                 loss = loss_fn(test_pred,y)
                 test_loss += loss.item()
-
-                test_pred_labels = test_pred.argmax(dim=1)
             
             test_loss = test_loss/len(dataloader) 
             return test_loss
