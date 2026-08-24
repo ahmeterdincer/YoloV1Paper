@@ -6,7 +6,7 @@ from torch.utils.data import random_split
 from torchvision.transforms import transforms,ToTensor
 import torchvision.transforms.functional as F
 from torch.utils.data import Dataset
-VOC_ROOT = "./data"
+
 
 def data_load(voc_root):
     os.makedirs(voc_root, exist_ok=True)
@@ -59,7 +59,7 @@ def feature_extracture():
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225])
     ])
-
+    return train_transforms, test_transforms
 from config import S, B, C, VOC_CLASSES
 
 def encode_target(image, target, S=S, B=B, C=C):

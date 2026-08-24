@@ -7,7 +7,7 @@ VOC_CLASSES = [
     'diningtable', 'dog', 'horse', 'motorbike', 'person',
     'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor'
 ]
-
+VOC_CLASSES_LENGTH = 20
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # ─── YOLOv1 Parametreleri ──────────────────────────────
 S = 7                # Görsel 7x7'lik ızgaraya (grid) bölünür
@@ -18,6 +18,7 @@ IMG_SIZE = 448       # YOLOv1 orijinal girdi çözünürlüğü
 LAMBDA_COORD = 5.0   # Koordinat kaybının katsayısı (konum hatalarını cezalandırır)
 LAMBDA_NOOBJ = 0.5   # Nesne olmayan hücrelerin güven skoru katsayısı
 # ─── Eğitim Ayarları ──────────────────────────────────
+VOC_ROOT = "./data"
 BATCH_SIZE = 16
 LEARNING_RATE = 2e-5
 WEIGHT_DECAY = 0.0005

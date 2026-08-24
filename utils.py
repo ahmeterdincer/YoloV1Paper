@@ -165,3 +165,11 @@ def plot_boxes(image, boxes, class_names=None):
     plt.axis("off")
     plt.tight_layout()
     plt.show()
+from config import CONF_THRESHOLD
+def nms(boxes:list, conf_treshold): #[güven_skoru, sınıf_indeksi, x, y, w, h]
+    filtered_boxes = [box for box in boxes if box[0] >= conf_treshold].sort()
+    sorted(filtered_boxes, key=lambda x: x[0], reverse=True)
+    chosen_boxes=[]
+    while True:
+        chosen_box = filtered_boxes.pop(0)
+        chosen_boxes.append(chosen_box)    
