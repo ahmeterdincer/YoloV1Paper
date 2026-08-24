@@ -22,11 +22,10 @@ def min(a, b):
 
 def iou(real_list: list, pred_list: list):
     """İki kutu [x, y, w, h] arasındaki Kesişim / Birleşim (IoU) örtüşme skorunu hesaplar."""
-    # [x, y, w, h] merkez koordinatlarını ve boyutları al
+    
     x1, y1, w1, h1 = real_list[0], real_list[1], real_list[2], real_list[3]
     x2, y2, w2, h2 = pred_list[0], pred_list[1], pred_list[2], pred_list[3]
 
-    # 1. Adım: Merkez koordinatlarından [x_min, y_min, xmax, ymax] köşe koordinatlarına geçiş
     box1_x1 = x1 - (w1 / 2)
     box1_y1 = y1 - (h1 / 2)
     box1_x2 = x1 + (w1 / 2)
@@ -37,34 +36,28 @@ def iou(real_list: list, pred_list: list):
     box2_x2 = x2 + (w2 / 2)
     box2_y2 = y2 + (h2 / 2)
 
-    # 2. Adım: Kesişim Kutusunun Sol-Üst (max) ve Sağ-Alt (min) Köşeleri
     x1_inter = max(box1_x1, box2_x1)
     y1_inter = max(box1_y1, box2_y1)
     x2_inter = min(box1_x2, box2_x2)
     y2_inter = min(box1_y2, box2_y2)
     
-    # 3. Adım: Kesişim genişlik ve yüksekliği (negatif olamaz)
     w_inter = max(0, x2_inter - x1_inter)
     h_inter = max(0, y2_inter - y1_inter)
     
-    # Kesişim Alanı
     intersection_area = w_inter * h_inter   
     
-    # 4. Adım: Kutuların Bireysel Alanları
     area_a = w1 * h1
     area_b = w2 * h2
     
-    # 5. Adım: Birleşim Alanı (Union Area)
     union_area = area_a + area_b - intersection_area
     
-    # 6. Adım: IoU Hesabı (Sıfıra bölme hatasına karşı epsilon eklendi)
     iou_score = intersection_area / (union_area + 1e-6)
     
     return iou_score
 
 def plot_boxes(image, boxes, class_names=None):
     """Görseli ve üzerindeki bounding box'ları sınıf isimleriyle birlikte ekrana çizer."""
-    # 1. Görseli Matplotlib için NumPy (H, W, C) formatına dönüştür
+    
     if type(image)!= torch.Tensor:
         image=ToTensor()(image)
     
@@ -86,25 +79,20 @@ def plot_boxes(image, boxes, class_names=None):
         mean = np.array([0.485, 0.456, 0.406])
         std = np.array([0.229, 0.224, 0.225])
     
-        # Ters formül: Orijinal = (Normalize_Görsel * std) + mean
         image = (image * std) + mean
         
-        # Değerlerin 0 ile 1 sınırlarının dışına taşmasını engelle
         image = np.clip(image, 0, 1)
     
     height = image.shape[0]
     width = image.shape[1]
     
-    # 2. Çizim figürünü oluştur
     fig, ax = plt.subplots(1, figsize=(8, 8))
     ax.imshow(image)
 
-    # 3. Kutuları tek tek çiz
     for box in boxes:
         score = None
         label = ""
         
-        # Farklı kutu formatlarını destekle: 6 elemanlı, 5 elemanlı veya 4 elemanlı
         if len(box) == 6:
             cls_val, score, x, y, w, h = box
         elif len(box) == 5:
@@ -115,7 +103,6 @@ def plot_boxes(image, boxes, class_names=None):
         else:
             continue
 
-        # Sınıf adını ve skorunu hazırla
         if cls_val is not None:
             if isinstance(cls_val, (int, float, np.integer)) and class_names is not None:
                 cls_idx = int(cls_val)
@@ -126,13 +113,11 @@ def plot_boxes(image, boxes, class_names=None):
         if score is not None:
             label += f" {score:.2f}"
 
-        # Normalize YOLO koordinatlarını (0-1) piksel koordinatlarına dönüştür
         box_w = w * width
         box_h = h * height
         upper_left_x = (x - w / 2) * width
         upper_left_y = (y - h / 2) * height
 
-        # Dikdörtgeni çiz ve ekle
         rect = patches.Rectangle(
             (upper_left_x, upper_left_y),
             box_w,
@@ -143,7 +128,6 @@ def plot_boxes(image, boxes, class_names=None):
         )
         ax.add_patch(rect)
 
-        # Etiket metnini kutunun sol üstüne yazdır
         if label:
             ax.text(
                 upper_left_x,

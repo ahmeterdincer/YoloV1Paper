@@ -87,33 +87,29 @@ def encode_target(image, target, S=S, B=B, C=C):
         xmax = float(obj['bndbox']['xmax']) / image_width
         ymax = float(obj['bndbox']['ymax']) / image_height
         
-        # Merkez (x, y) ve Boyut (w, h) hesapla
+
         x_center = (xmin + xmax) / 2.0
         y_center = (ymin + ymax) / 2.0
         width = xmax - xmin
         height = ymax - ymin
         
-        # Hangi grid hücresine (satır, sütun) düştüğünü bul
+
         row = int(y_center * S)
         col = int(x_center * S)
-        
-        # Sınır taşmalarını engelle (0 ile S-1 arası)
+
         row = min(row, S - 1)
         col = min(col, S - 1)
         
-        # Hücre içi göreli koordinatlar (0 ile 1 arası)
+
         x_cell = x_center * S - col
         y_cell = y_center * S - row
         
-        # Eğer o hücreye daha önce nesne atanmamışsa (1. kutunun Confidence skoru 0 ise)
+
         if target_matrix[row, col, C] == 0:
-            # 1. Sınıf One-Hot kodlaması (0 - 19)
             target_matrix[row, col, class_idx] = 1.0
             
-            # 2. 1. Kutunun Confidence Skoru (İndeks 20)
             target_matrix[row, col, C] = 1.0
             
-            # 3. 1. Kutunun Konumu [x_cell, y_cell, w, h] (İndeks 21 - 24)
             target_matrix[row, col, C + 1 : C + 5] = torch.tensor([x_cell, y_cell, width, height])
             
     return target_matrix

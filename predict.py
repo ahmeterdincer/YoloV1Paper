@@ -46,11 +46,8 @@ def decode_predictions(predictions: torch.Tensor, S: int, B: int, C: int):
     
     return all_boxes
 
-# 1. Modelin (1, 7, 7, 30) çıktısını squeeze edip (7, 7, 30) olarak kutulara çevir:
 decoded_boxes = decode_predictions(prediction.squeeze(0), S, B, C)
 
-# 2. NMS ile mükerrer kutuları temizle:
 clean_boxes = nms(decoded_boxes, conf_treshold=CONF_THRESHOLD, ıou_treshold=IOU_THRESHOLD)
 
-# 3. Görseli ve kutuları ekrana çizdir:
 plot_boxes(image, clean_boxes, class_names=VOC_CLASSES)
