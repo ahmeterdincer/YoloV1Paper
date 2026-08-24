@@ -4,7 +4,8 @@ from utils import iou
 
 
 class YOLOLoss(nn.Module):
-    def __init__(self,S:int = 7, B:int = 2, C:int = 20,coord:float = 5.0, noobj:float = 0.5):
+    """Sorumlu kutu seçimi, konum, boyut, güven skoru ve sınıf kayıplarını hesaplayan 5 parçalı YOLOv1 Loss sınıfı."""
+    def __init__(self, S: int = 7, B: int = 2, C: int = 20, coord: float = 5.0, noobj: float = 0.5):
         super().__init__()
         self.S = S
         self.B = B
@@ -13,7 +14,7 @@ class YOLOLoss(nn.Module):
         self.noobj = noobj
         self.mse = nn.MSELoss(reduction="sum")
 
-    def forward(self,target, prediction):
+    def forward(self, prediction, target):
         pred_bounding_boxes=[]
         true_bounding_box=None
         exists_box = target[...,20:21]

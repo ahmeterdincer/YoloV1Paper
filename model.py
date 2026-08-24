@@ -30,6 +30,7 @@ architecture_config = [
 ]
 
 class CNNBlock(nn.Module):
+    """Conv2d + BatchNorm2d + LeakyReLU katmanlarından oluşan temel evrişim bloğu."""
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride: int, padding: int):
         super().__init__()
         self.conv_block = nn.Sequential(
@@ -49,6 +50,7 @@ class CNNBlock(nn.Module):
         return self.conv_block(x)
 
 class YOLOv1(nn.Module):
+    """24 Convolutional Darknet omurgası ve Dense kafa içeren YOLOv1 modeli."""
     def __init__(self, in_channels=3, S=7, B=2, C=20):
         super().__init__()
         self.in_channels = in_channels

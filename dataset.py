@@ -9,6 +9,7 @@ from torch.utils.data import Dataset
 
 
 def data_load(voc_root):
+    """Pascal VOC 2007 veri setini indirir, yükler ve train/test setlerine böler."""
     os.makedirs(voc_root, exist_ok=True)
     
     train_dataset = VOCDetection(
@@ -35,6 +36,7 @@ def data_load(voc_root):
     return train_data_cutted, test_data_cutted
 
 def feature_extracture():
+    """Eğitim ve test için görüntü boyutlandırma, veri artırma ve normalizasyon dönüşümlerini oluşturur."""
     train_transforms = transforms.Compose(
         [
             transforms.Resize((448,448)),
@@ -60,10 +62,11 @@ def feature_extracture():
         std=[0.229, 0.224, 0.225])
     ])
     return train_transforms, test_transforms
+
 from config import S, B, C, VOC_CLASSES
 
 def encode_target(image, target, S=S, B=B, C=C):
-
+    """Pascal VOC etiketlerini YOLOv1 için (S, S, C + B*5) hedef tensör matrisine kodlar."""
     image_width, image_height = image.size
     
     target_matrix = torch.zeros((S, S, C + B * 5))
@@ -116,6 +119,7 @@ def encode_target(image, target, S=S, B=B, C=C):
     return target_matrix
 
 class Dataset(Dataset):
+    """Görselleri ve hedef matrislerini batch'ler halinde döndüren PyTorch veri seti sınıfı."""
     def __init__(self,dataset: Dataset, S:int, B:int, C:int, transform=None):
         self.transform = transform
         self.S = S

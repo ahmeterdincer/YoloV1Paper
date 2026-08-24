@@ -20,8 +20,9 @@ with torch.no_grad():
     prediction = model(image_tensor)
     
     
-def decode_predictions(predictions:torch.Tensor, S:int, B:int, C:int):
-    all_boxes= []
+def decode_predictions(predictions: torch.Tensor, S: int, B: int, C: int):
+    """Modelin (S, S, 30) tensör çıktısını görsel koordinatlarına [skor, sınıf, x, y, w, h] dönüştürür."""
+    all_boxes = []
     for row in range(7):
         for col in range(7):
             

@@ -6,22 +6,22 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image
 
-def box_boundaries( xmin:float, ymin:float, xmax:float, ymax:float):
-    x_center= (xmin+xmax)/2
-    y_center = (ymin+ymax)/2
-    w = xmax-xmin
-    h = ymax-ymin
-    return x_center, y_center, w,h
+def box_boundaries(xmin: float, ymin: float, xmax: float, ymax: float):
+    """Köşe koordinatlarını [xmin, ymin, xmax, ymax] merkez ve boyutlara [x, y, w, h] dönüştürür."""
+    x_center = (xmin + xmax) / 2
+    y_center = (ymin + ymax) / 2
+    w = xmax - xmin
+    h = ymax - ymin
+    return x_center, y_center, w, h
 
-def max(a,b):
-    if a>b: return a
-    return b
+def max(a, b):
+    return a if a > b else b
 
-def min(a,b):
-    if a<b: return a
-    return b
+def min(a, b):
+    return a if a < b else b
 
 def iou(real_list: list, pred_list: list):
+    """İki kutu [x, y, w, h] arasındaki Kesişim / Birleşim (IoU) örtüşme skorunu hesaplar."""
     # [x, y, w, h] merkez koordinatlarını ve boyutları al
     x1, y1, w1, h1 = real_list[0], real_list[1], real_list[2], real_list[3]
     x2, y2, w2, h2 = pred_list[0], pred_list[1], pred_list[2], pred_list[3]
@@ -63,14 +63,7 @@ def iou(real_list: list, pred_list: list):
     return iou_score
 
 def plot_boxes(image, boxes, class_names=None):
-    """
-    Görseli ve üzerindeki bounding box'ları ekrana çizer.
-    
-    Parametreler:
-    - image: PyTorch Tensor (C, H, W veya 1, C, H, W), PIL Image veya NumPy Array (H, W, C)
-    - boxes: [[class_val, (score), x, y, w, h], ...] formatında normalize [0, 1] kutu listesi
-    - class_names: İndeksleri sınıf isimlerine çevirmek için liste (Örn: VOC_CLASSES)
-    """
+    """Görseli ve üzerindeki bounding box'ları sınıf isimleriyle birlikte ekrana çizer."""
     # 1. Görseli Matplotlib için NumPy (H, W, C) formatına dönüştür
     if type(image)!= torch.Tensor:
         image=ToTensor()(image)
@@ -165,18 +158,21 @@ def plot_boxes(image, boxes, class_names=None):
     plt.axis("off")
     plt.tight_layout()
     plt.show()
-from config import CONF_THRESHOLD,IOU_THRESHOLD
-def nms(boxes:list, conf_treshold, ıou_treshold): #[güven_skoru, sınıf_indeksi, x, y, w, h]
+
+from config import CONF_THRESHOLD, IOU_THRESHOLD
+
+def nms(boxes: list, conf_treshold: float, ıou_treshold: float):
+    """Çakışan mükerrer kutuları IoU ve güven eşiğine göre eleyerek en iyi kutuları seçer."""
     filtered_boxes = [box for box in boxes if box[0] >= conf_treshold]
     filtered_boxes = sorted(filtered_boxes, key=lambda x: x[0], reverse=True)
-    chosen_boxes=[]
+    chosen_boxes = []
+    
     while filtered_boxes:
         chosen_box = filtered_boxes.pop(0)
         chosen_boxes.append(chosen_box)    
         remaining_boxes = []
         
         for des in filtered_boxes:
-
             if chosen_box[1] != des[1]:
                 remaining_boxes.append(des)
             elif iou(chosen_box[2:], des[2:]) < ıou_treshold:
