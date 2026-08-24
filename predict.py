@@ -16,3 +16,6 @@ image_tensor = test_transforms(image).unsqueeze(0)
 model.eval()
 with torch.no_grad():
     prediction = model(image_tensor)
+    
+    
+def decode_predictions(predictions:torch.Tensor, S:int, B:int, C:int):

@@ -165,11 +165,23 @@ def plot_boxes(image, boxes, class_names=None):
     plt.axis("off")
     plt.tight_layout()
     plt.show()
-from config import CONF_THRESHOLD
-def nms(boxes:list, conf_treshold): #[güven_skoru, sınıf_indeksi, x, y, w, h]
-    filtered_boxes = [box for box in boxes if box[0] >= conf_treshold].sort()
-    sorted(filtered_boxes, key=lambda x: x[0], reverse=True)
+from config import CONF_THRESHOLD,IOU_THRESHOLD
+def nms(boxes:list, conf_treshold, ıou_treshold): #[güven_skoru, sınıf_indeksi, x, y, w, h]
+    filtered_boxes = [box for box in boxes if box[0] >= conf_treshold]
+    filtered_boxes = sorted(filtered_boxes, key=lambda x: x[0], reverse=True)
     chosen_boxes=[]
-    while True:
+    while filtered_boxes:
         chosen_box = filtered_boxes.pop(0)
         chosen_boxes.append(chosen_box)    
+        remaining_boxes = []
+        
+        for des in filtered_boxes:
+
+            if chosen_box[1] != des[1]:
+                remaining_boxes.append(des)
+            elif iou(chosen_box[2:], des[2:]) < ıou_treshold:
+                remaining_boxes.append(des)
+
+        filtered_boxes = remaining_boxes
+        
+    return chosen_boxes  

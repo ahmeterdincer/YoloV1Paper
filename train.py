@@ -19,7 +19,7 @@ test_dataset  = Dataset(test_raw,  S, B, C, transform=test_transforms)
 train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 test_loader  = DataLoader(test_dataset,  batch_size=BATCH_SIZE, shuffle=False)
 
-model = YOLOv1(in_channels=C, S=S, B=B,C=VOC_CLASSES_LENGTH).to(device=DEVICE)
+model = YOLOv1(in_channels=3, S=S, B=B,C=VOC_CLASSES_LENGTH).to(device=DEVICE)
 loss_val = YOLOLoss(S=S, B=B, C=VOC_CLASSES_LENGTH)
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 

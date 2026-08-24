@@ -7,7 +7,7 @@ VOC_CLASSES = [
     'diningtable', 'dog', 'horse', 'motorbike', 'person',
     'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor'
 ]
-VOC_CLASSES_LENGTH = 20
+
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 # ─── YOLOv1 Parametreleri ──────────────────────────────
 S = 7                # Görsel 7x7'lik ızgaraya (grid) bölünür
